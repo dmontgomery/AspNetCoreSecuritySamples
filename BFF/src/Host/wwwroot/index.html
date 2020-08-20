@@ -38,7 +38,7 @@
 
         function callBackEndApi() {
             var xhr = new XMLHttpRequest();
-            xhr.open("GET", "api/test/identity");
+            xhr.open("GET", "user/info-external");
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     log(xhr.status, JSON.parse(xhr.responseText));

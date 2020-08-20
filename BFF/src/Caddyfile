@@ -1,0 +1,48 @@
+montgomery.local
+
+log
+tls montgomery.local.pem montgomery.local-key.pem
+
+handle_path /favicon.ico {
+   file_server    
+}
+
+handle_path /api/* {
+   
+    rewrite * {path}
+    
+    reverse_proxy https://localhost:5003 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.remote.host}
+        header_up X-Forwarded-Port {http.request.port}
+        header_up X-Forwarded-Proto {http.request.scheme}    
+    }
+}
+
+handle_path /app/* {
+   
+    rewrite * {path}
+    
+    reverse_proxy https://localhost:5001 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.remote.host}
+        header_up X-Forwarded-Port {http.request.port}
+        header_up X-Forwarded-Proto {http.request.scheme}    
+    }
+}
+
+handle_path /custos/* {
+   
+    rewrite * {path}
+    
+    reverse_proxy https://localhost:8001 {
+        header_up Host {http.request.host}
+        header_up X-Real-IP {http.request.remote.host}
+        header_up X-Forwarded-For {http.request.remote.host}
+        header_up X-Forwarded-Port {http.request.port}
+        header_up X-Forwarded-Proto {http.request.scheme}    
+    }
+}
+

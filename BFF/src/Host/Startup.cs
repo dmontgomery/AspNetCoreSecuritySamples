@@ -9,13 +9,21 @@ using Microsoft.IdentityModel.Tokens;
 using ProxyKit;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace Host
 {
     public class Startup
     {
-        public Startup()
+        public IWebHostEnvironment Environment { get; }
+        
+        public IConfiguration Configuration { get; }
+        
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
+            Configuration = configuration;
+            Environment = environment;
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
 
@@ -34,13 +42,15 @@ namespace Host
             })
             .AddCookie("cookies", options =>
             {
-                options.Cookie.Name = "bff";
-                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.Name = "netfile.bff";
+                //options.Cookie.SameSite = SameSiteMode.Strict;
             })
             .AddOpenIdConnect("oidc", options =>
             {
-                options.Authority = "https://demo.identityserver.io";
-                options.ClientId = "interactive.confidential";
+                options.Authority = "https://localhost:8001";
+                //options.Authority = "https://demo.identityserver.io/";
+                options.ClientId = "bffdemo.app";
+                //options.ClientId = "interactive.confidential";
                 options.ClientSecret = "secret";
 
                 options.ResponseType = "code";
@@ -50,8 +60,9 @@ namespace Host
                 options.Scope.Clear();
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
+                options.Scope.Add("email");
                 options.Scope.Add("api");
-                options.Scope.Add("offline_access");
+                options.Scope.Add("offline_access"); // this is needed to have the IDP create the refresh token
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -59,15 +70,33 @@ namespace Host
                     RoleClaimType = "role"
                 };
             });
+            
+            // this configures the IHttpClientFactory to add our JWT to requests to the domain layer
+            services.AddAccessTokenManagement()
+                .ConfigureBackchannelHttpClient();
+            services.AddUserAccessTokenClient("user_client", c =>
+            {
+                c.BaseAddress = new Uri("https://localhost:5003");
+            });
+
+            services.AddScoped<ISessionAssessorFake, SessionAssessorThing>();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDeveloperExceptionPage();
+            if (Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                app.UseCors(builder =>
+                {
+                    builder.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            }
 
             app.UseMiddleware<StrictSameSiteExternalAuthenticationMiddleware>();
             app.UseAuthentication();
-
             app.Use(async (context, next) =>
             {
                 if (!context.User.Identity.IsAuthenticated)
@@ -79,6 +108,7 @@ namespace Host
                 await next();
             });
 
+            /*
             app.Map("/api", api =>
             {
                 api.RunProxy(async context =>
@@ -91,10 +121,13 @@ namespace Host
                     return await forwardContext.Send();
                 });
             });
+            */
 
+            app.UseHttpsRedirection();
+            
             app.UseDefaultFiles();
             app.UseStaticFiles();
-
+            
             app.UseRouting();
 
             app.UseAuthentication();

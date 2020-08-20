@@ -4,6 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E03D7A7C-9E2C-40C1-80DB-6B2EDE68A80C}"
+ProjectSection(SolutionItems) = preProject
+	src\Dockerfile = src\Dockerfile
+	src\nginx.conf = src\nginx.conf
+	src\proxy.conf = src\proxy.conf
+	src\fastcgi.conf = src\fastcgi.conf
+	src\mime.types = src\mime.types
+	src\ScratchFile.txt = src\ScratchFile.txt
+	src\Caddyfile = src\Caddyfile
+EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Host", "src\Host\Host.csproj", "{42633B3D-76E6-4227-B888-FEBC9B2C9D03}"
 EndProject

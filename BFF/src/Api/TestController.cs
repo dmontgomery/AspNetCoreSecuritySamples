@@ -18,7 +18,19 @@ namespace Api
         {
             var claims = from c in User.Claims select new { c.Type, c.Value };
 
+            var sidValue = User.Claims.Where(x => x.Type == "sid").FirstOrDefault();
+            var jtiValue = User.Claims.Where(x => x.Type == "jti").FirstOrDefault();
+            
+            _enforcer.AssertAuthorized("B", "blah");
+            
             return new JsonResult(claims);
+        }
+
+        private IEnforcePermissions _enforcer;
+
+        public TestController(IEnforcePermissions enforcer)
+        {
+            _enforcer = enforcer;
         }
     }
 }
